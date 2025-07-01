@@ -1,192 +1,116 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Blackjack Game</title>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Blackjack with Sound & Animation</title>
   <style>
-    body {
-      font-family: sans-serif;
-      background: #222;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
+    body { font-family: sans-serif; background:#222; color:#fff; display:flex; flex-direction:column; align-items:center; padding:20px; }
+    h1 { color:#facc15; }
+    .game-area { display:flex; flex-direction:column; gap:20px; align-items:center; }
+    .cards { display:flex; gap:10px; flex-wrap:wrap; perspective:800px; }
+    .card { width:60px; height:90px; background:white; color:black; font-weight:bold;
+      display:flex; justify-content:center; align-items:center; border-radius:8px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.4); font-size:20px;
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+      position:relative;
     }
-
-    h1 {
-      color: #facc15;
+    .card.back { background:#444; }
+    .card .front, .card .back-face {
+      position:absolute; width:100%; height:100%; backface-visibility:hidden;
+      display:flex; align-items:center; justify-content:center; border-radius:8px;
     }
-
-    .game-area {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      align-items: center;
-    }
-
-    .cards {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .card {
-      width: 60px;
-      height: 90px;
-      background: white;
-      color: black;
-      font-weight: bold;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-      font-size: 20px;
-    }
-
-    button {
-      background: #facc15;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      margin: 5px;
-    }
-
-    .status {
-      font-size: 18px;
-      margin-top: 10px;
-    }
+    .card .back-face { background:#444; transform: rotateY(180deg); color:#444; }
+    button { background:#facc15; border:none; padding:10px 20px; border-radius:6px; font-weight:bold; cursor:pointer; margin:5px; }
+    .status { font-size:18px; margin-top:10px; }
   </style>
 </head>
 <body>
   <h1>🃏 Blackjack 21</h1>
   <div class="game-area">
-    <div>
-      <strong>Dealer:</strong>
-      <div id="dealer-cards" class="cards"></div>
-    </div>
-    <div>
-      <strong>You:</strong>
-      <div id="player-cards" class="cards"></div>
-    </div>
-
+    <div><strong>Dealer:</strong><div id="dealer-cards" class="cards"></div></div>
+    <div><strong>You:</strong><div id="player-cards" class="cards"></div></div>
     <div>
       <button onclick="hit()">Hit</button>
       <button onclick="stand()">Stand</button>
       <button onclick="restart()">Restart</button>
     </div>
-    <div class="status" id="status"></div>
+    <div id="status" class="status"></div>
   </div>
 
-  <script>
-    const suits = ['♠', '♥', '♦', '♣'];
-    const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+  <!-- เสียง -->
+  <audio id="sndDraw" src="https://cdn.pixabay.com/download/audio/2021/09/26/audio_7e0d85c7f0.mp3"></audio>
+  <audio id="sndFlip" src="https://orangefreesounds.com/wp-content/uploads/2018/07/Card-flip-sound-effect.mp3"></audio>
 
+  <script>
+    const suits=['♠','♥','♦','♣'], values=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
     let deck, playerCards, dealerCards, gameOver;
 
-    function createDeck() {
-      const newDeck = [];
-      for (let suit of suits) {
-        for (let value of values) {
-          newDeck.push({ suit, value });
-        }
-      }
-      return shuffle(newDeck);
+    function createDeck(){
+      let d=[]; for(let s of suits) for(let v of values) d.push({suit:s,value:v});
+      return d.sort(()=>Math.random()-0.5);
     }
-
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
+    function getCardValue(c){
+      if(['J','Q','K'].includes(c.value)) return 10;
+      if(c.value==='A') return 11;
+      return +c.value;
     }
-
-    function getCardValue(card) {
-      if (['J', 'Q', 'K'].includes(card.value)) return 10;
-      if (card.value === 'A') return 11;
-      return parseInt(card.value);
-    }
-
-    function getHandValue(cards) {
-      let total = 0;
-      let aces = 0;
-      for (let card of cards) {
-        total += getCardValue(card);
-        if (card.value === 'A') aces++;
+    function handValue(cards){
+      let total=0, aces=0;
+      for(let c of cards){
+        total+=getCardValue(c);
+        if(c.value==='A') aces++;
       }
-      while (total > 21 && aces > 0) {
-        total -= 10;
-        aces--;
-      }
+      while(total>21 && aces>0){ total-=10; aces--; }
       return total;
     }
-
-    function renderCards(containerId, cards) {
-      const container = document.getElementById(containerId);
-      container.innerHTML = '';
-      for (let card of cards) {
-        const cardDiv = document.createElement('div');
-        cardDiv.className = 'card';
-        cardDiv.textContent = `${card.value}${card.suit}`;
-        container.appendChild(cardDiv);
-      }
+    function renderCards(containerId, cards, hideSecond=false){
+      const ctn=document.getElementById(containerId);
+      ctn.innerHTML='';
+      cards.forEach((c,i)=>{
+        const div=document.createElement('div');
+        div.className='card';
+        if(containerId==='dealer-cards' && i===1 && hideSecond && !gameOver){
+          div.classList.add('back');
+          div.innerHTML='<div class="back-face"></div><div class="front">'+c.value+c.suit+'</div>';
+        } else {
+          div.innerHTML='<div class="front">'+c.value+c.suit+'</div>';
+          if(containerId==='dealer-cards'&&i===1&&gameOver){
+            div.querySelector('.front').parentElement.classList.remove('back');
+          }
+        }
+        div.addEventListener('animationstart',()=>document.getElementById('sndFlip').play());
+        ctn.appendChild(div);
+      });
     }
-
-    function updateUI() {
-      renderCards('player-cards', playerCards);
-      renderCards('dealer-cards', dealerCards);
-      const status = document.getElementById('status');
-      const playerValue = getHandValue(playerCards);
-      if (playerValue > 21) {
-        status.textContent = 'You busted! 💥';
-        gameOver = true;
-      }
+    function playDraw(){ document.getElementById('sndDraw').play(); }
+    function updateUI(){
+      playDraw();
+      renderCards('player-cards',playerCards);
+      renderCards('dealer-cards',dealerCards,true);
+      const pv=handValue(playerCards);
+      if(pv>21){ document.getElementById('status').textContent='You busted! 💥'; gameOver=true; }
     }
-
-    function hit() {
-      if (gameOver) return;
-      playerCards.push(deck.pop());
+    function hit(){ if(gameOver)return; playerCards.push(deck.pop()); updateUI(); }
+    function stand(){
+      gameOver=true;
+      while(handValue(dealerCards)<17){ dealerCards.push(deck.pop()); playDraw(); }
+      renderCards('dealer-cards',dealerCards,false);
+      const pv=handValue(playerCards), dv=handValue(dealerCards);
+      const st=document.getElementById('status');
+      if(dv>21||pv>dv) st.textContent='You win! 🎉';
+      else if(pv<dv) st.textContent='Dealer wins! 😭';
+      else st.textContent="It's a tie! 🤝";
+    }
+    function restart(){
+      deck=createDeck();
+      playerCards=[deck.pop(), deck.pop()];
+      dealerCards=[deck.pop(), deck.pop()];
+      gameOver=false;
+      document.getElementById('status').textContent='';
       updateUI();
     }
-
-    function stand() {
-      if (gameOver) return;
-      while (getHandValue(dealerCards) < 17) {
-        dealerCards.push(deck.pop());
-      }
-
-      const playerValue = getHandValue(playerCards);
-      const dealerValue = getHandValue(dealerCards);
-      const status = document.getElementById('status');
-
-      renderCards('dealer-cards', dealerCards);
-
-      if (dealerValue > 21 || playerValue > dealerValue) {
-        status.textContent = 'You win! 🎉';
-      } else if (playerValue < dealerValue) {
-        status.textContent = 'Dealer wins! 😭';
-      } else {
-        status.textContent = 'It\'s a tie! 🤝';
-      }
-
-      gameOver = true;
-    }
-
-    function restart() {
-      deck = createDeck();
-      playerCards = [deck.pop(), deck.pop()];
-      dealerCards = [deck.pop()];
-      gameOver = false;
-      document.getElementById('status').textContent = '';
-      updateUI();
-    }
-
-    restart(); // เริ่มเกม
+    restart();
   </script>
 </body>
 </html>
