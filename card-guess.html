@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เกมเดาไพ่</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap');
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    h1 {
+      font-size: 2.5em;
+      color: #ffd700;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      margin-bottom: 10px;
+    }
+    
+    #score {
+      font-size: 1.3em;
+      font-weight: 600;
+      color: #fff;
+    }
+    
+    .game-panel {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 30px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      text-align: center;
+    }
+    
+    #message {
+      font-size: 1.4em;
+      margin-bottom: 25px;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    
+    #buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 25px;
+      min-height: 60px;
+      align-items: center;
+    }
+    
+    .game-button {
+      font-family: 'Sarabun', sans-serif;
+      font-size: 1.1em;
+      font-weight: 600;
+      padding: 12px 25px;
+      background: linear-gradient(45deg, #ffd700, #ffed4e);
+      color: #333;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      min-width: 80px;
+      text-shadow: none;
+    }
+    
+    .game-button:hover {
+      background: linear-gradient(45deg, #ffed4e, #fff);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    
+    .game-button:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    
+    #cards {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      min-height: 120px;
+      align-items: center;
+    }
+    
+    .card-display {
+      width: 80px;
+      height: 110px;
+      background: #fff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      opacity: 0;
+      transform: rotateY(90deg);
+      transition: all 0.5s ease;
+      border: 2px solid #ddd;
+    }
+    
+    .card-display.show {
+      opacity: 1;
+      transform: rotateY(0deg);
+    }
+    
+    .card-display.red {
+      color: #e74c3c;
+    }
+    
+    .card-display.black {
+      color: #2c3e50;
+    }
+    
+    @media (max-width: 480px) {
+      body {
+        padding: 5px;
+      }
+      
+      h1 {
+        font-size: 2em;
+      }
+      
+      .game-panel {
+        padding: 20px;
+      }
+      
+      #message {
+        font-size: 1.2em;
+      }
+      
+      .game-button {
+        font-size: 1em;
+        padding: 10px 20px;
+        min-width: 70px;
+      }
+      
+      .card-display {
+        width: 60px;
+        height: 85px;
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🎴 เกมเดาไพ่</h1>
+    <div id="score">คะแนน: 0</div>
+  </header>
+
+  <div class="game-panel">
+    <div id="message">กดปุ่มเริ่มเกม</div>
+    <div id="buttons">
+      <button class="game-button" onclick="startGame()">เริ่มเกม</button>
+    </div>
+    <div id="cards"></div>
+  </div>
+</div>
+
+<script>
+// ข้อมูลไพ่
+const suits = ['SPADES', 'HEARTS', 'DIAMONDS', 'CLUBS'];
+const suitSymbols = {
+  'SPADES': '♠',
+  'HEARTS': '♥', 
+  'DIAMONDS': '♦',
+  'CLUBS': '♣'
+};
+const suitNames = {
+  'SPADES': 'โพดำ',
+  'HEARTS': 'หัวใจ',
+  'DIAMONDS': 'ข้าวหลามตัด', 
+  'CLUBS': 'ดอกจิก'
+};
+const values = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+
+// ตัวแปรเกม
+let deck = [];
+let drawn = [];
+let score = 0;
+let gameStarted = false;
+
+// เสียง (ใช้ Web Audio API แทน)
+let audioContext;
+
+function initAudio() {
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  } catch(e) {
+    console.log('Audio not supported');
+  }
+}
+
+function playTone(frequency, duration, type = 'sine') {
+  if (!audioContext) return;
+  
+  try {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = frequency;
+    oscillator.type = type;
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + duration);
+  } catch(e) {
+    console.log('Sound play failed');
+  }
+}
+
+function playCorrectSound() {
+  playTone(800, 0.2);
+  setTimeout(() => playTone(1000, 0.2), 100);
+}
+
+function playWrongSound() {
+  playTone(300, 0.5, 'sawtooth');
+}
+
+// ฟังก์ชันจัดการเกม
+function updateScore() {
+  document.getElementById('score').textContent = `คะแนน: ${score}`;
+}
+
+function setMessage(text) {
+  document.getElementById('message').textContent = text;
+}
+
+function clearButtons() {
+  document.getElementById('buttons').innerHTML = '';
+}
+
+function addButton(text, onclick) {
+  const button = document.createElement('button');
+  button.className = 'game-button';
+  button.textContent = text;
+  button.onclick = onclick;
+  document.getElementById('buttons').appendChild(button);
+}
+
+function createDeck() {
+  deck = [];
+  for (let suit of suits) {
+    for (let value of values) {
+      deck.push({suit, value});
+    }
+  }
+  // สุ่มไพ่
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+}
+
+function cardValue(card) {
+  if (card.value === 'J') return 11;
+  if (card.value === 'Q') return 12; 
+  if (card.value === 'K') return 13;
+  if (card.value === 'A') return 14;
+  return parseInt(card.value);
+}
+
+function cardColor(card) {
+  return (card.suit === 'HEARTS' || card.suit === 'DIAMONDS') ? 'red' : 'black';
+}
+
+function showCard(card, callback) {
+  const cardDiv = document.createElement('div');
+  cardDiv.className = `card-display ${cardColor(card)}`;
+  cardDiv.textContent = `${card.value}${suitSymbols[card.suit]}`;
+  
+  document.getElementById('cards').appendChild(cardDiv);
+  
+  // แสดงไพ่พร้อมอนิเมชัน
+  setTimeout(() => {
+    cardDiv.classList.add('show');
+    if (callback) {
+      setTimeout(callback, 800);
+    }
+  }, 100);
+}
+
+function drawCard(callback) {
+  if (deck.length === 0) {
+    setMessage("หมดสำรับแล้ว! เกมจะเริ่มใหม่");
+    setTimeout(startGame, 2000);
+    return;
+  }
+  
+  const card = deck.pop();
+  drawn.push(card);
+  showCard(card, () => {
+    if (callback) callback(card);
+  });
+}
+
+function startGame() {
+  initAudio();
+  createDeck();
+  drawn = [];
+  score = 0;
+  gameStarted = true;
+  
+  document.getElementById('cards').innerHTML = '';
+  updateScore();
+  setMessage("ทายว่าไพ่ใบแรกจะเป็นสีอะไร?");
+  
+  clearButtons();
+  addButton("ดำ", () => guessColor('black'));
+  addButton("แดง", () => guessColor('red'));
+}
+
+function guessColor(choice) {
+  clearButtons();
+  setMessage("กำลังเปิดไพ่...");
+  
+  drawCard((card) => {
+    const correct = cardColor(card) === choice;
+    const colorName = cardColor(card) === 'red' ? 'แดง' : 'ดำ';
+    
+    if (!correct) {
+      playWrongSound();
+      setMessage(`ผิด! ไพ่เป็นสี${colorName} (${card.value}${suitSymbols[card.suit]})`);
+      setTimeout(startGame, 2000);
+      return;
+    }
+    
+    playCorrectSound();
+    score++;
+    updateScore();
+    setMessage("ถูกต้อง! ทายว่าไพ่ต่อไปจะสูงหรือต่ำกว่า?");
+    
+    setTimeout(() => {
+      addButton("สูง", () => guessHighLow('สูง'));
+      addButton("ต่ำ", () => guessHighLow('ต่ำ'));
+    }, 1000);
+  });
+}
+
+function guessHighLow(choice) {
+  clearButtons();
+  setMessage("กำลังเปิดไพ่...");
+  
+  drawCard((card) => {
+    const prev = cardValue(drawn[drawn.length - 2]);
+    const curr = cardValue(card);
+    let correct = false;
+    
+    if (choice === 'สูง' && curr > prev) correct = true;
+    if (choice === 'ต่ำ' && curr < prev) correct = true;
+    
+    if (!correct) {
+      playWrongSound();
+      setMessage(`ผิด! ไพ่คือ ${card.value}${suitSymbols[card.suit]} (${curr > prev ? 'สูงกว่า' : curr < prev ? 'ต่ำกว่า' : 'เท่ากัน'})`);
+      setTimeout(startGame, 2000);
+      return;
+    }
+    
+    playCorrectSound();
+    score++;
+    updateScore();
+    setMessage("ถูกต้อง! ทายว่าไพ่ต่อไปจะอยู่ในช่วงหรือนอกช่วงของไพ่สองใบก่อนหน้า?");
+    
+    setTimeout(() => {
+      addButton("ในช่วง", () => guessInOutRange('in'));
+      addButton("นอกช่วง", () => guessInOutRange('out'));
+    }, 1000);
+  });
+}
+
+function guessInOutRange(choice) {
+  clearButtons();
+  setMessage("กำลังเปิดไพ่...");
+  
+  drawCard((card) => {
+    const vals = [cardValue(drawn[drawn.length - 3]), cardValue(drawn[drawn.length - 2])];
+    const minV = Math.min(...vals);
+    const maxV = Math.max(...vals);
+    const curr = cardValue(card);
+    
+    const inRange = (curr > minV && curr < maxV);
+    const correct = (choice === 'in' && inRange) || (choice === 'out' && !inRange);
+    
+    if (!correct) {
+      playWrongSound();
+      setMessage(`ผิด! ไพ่คือ ${card.value}${suitSymbols[card.suit]} (${inRange ? 'อยู่ในช่วง' : 'อยู่นอกช่วง'})`);
+      setTimeout(startGame, 2000);
+      return;
+    }
+    
+    playCorrectSound();
+    score++;
+    updateScore();
+    setMessage("ถูกต้อง! ทายดอกไพ่ใบสุดท้าย!");
+    
+    setTimeout(() => {
+      for (let suit of suits) {
+        addButton(suitSymbols[suit], () => guessSuit(suit));
+      }
+    }, 1000);
+  });
+}
+
+function guessSuit(choice) {
+  clearButtons();
+  setMessage("กำลังเปิดไพ่...");
+  
+  drawCard((card) => {
+    const correct = card.suit === choice;
+    
+    if (!correct) {
+      playWrongSound();
+      setMessage(`ผิด! ไพ่คือ ${card.value}${suitSymbols[card.suit]} (${suitNames[card.suit]})`);
+      setTimeout(startGame, 2000);
+      return;
+    }
+    
+    playCorrectSound();
+    score++;
+    updateScore();
+    setMessage(`🎉 ยินดีด้วย! คุณชนะแล้ว! คะแนนสุดท้าย: ${score}`);
+    
+    setTimeout(() => {
+      addButton("เล่นอีกครั้ง", startGame);
+    }, 2000);
+  });
+}
+
+// เริ่มเกมเมื่อโหลดหน้าเสร็จ
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Game loaded');
+});
+</script>
+
+</body>
+</html>
