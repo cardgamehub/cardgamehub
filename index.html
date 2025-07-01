@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Hub - ศูนย์รวมเกม</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap');
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #fff;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .header h1 {
+      font-size: 3.5em;
+      font-weight: 700;
+      color: #ffd700;
+      text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+      margin-bottom: 10px;
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+      from { text-shadow: 3px 3px 6px rgba(0,0,0,0.5), 0 0 20px #ffd700; }
+      to { text-shadow: 3px 3px 6px rgba(0,0,0,0.5), 0 0 30px #ffd700, 0 0 40px #ffd700; }
+    }
+    .subtitle {
+      font-size: 1.4em;
+      color: #e8e8e8;
+      margin-bottom: 20px;
+    }
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+    .game-card {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 30px;
+      text-align: center;
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .game-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+    .game-card:hover::before {
+      left: 100%;
+    }
+    .game-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+      border-color: #ffd700;
+    }
+    .game-icon {
+      font-size: 4em;
+      margin-bottom: 15px;
+      display: block;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+    }
+    .game-title {
+      font-size: 1.8em;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #ffd700;
+    }
+    .game-description {
+      font-size: 1.1em;
+      line-height: 1.5;
+      color: #e8e8e8;
+      margin-bottom: 20px;
+    }
+    .difficulty {
+      display: inline-block;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+    .difficulty.easy { background: #27ae60; }
+    .difficulty.medium { background: #f39c12; }
+    .difficulty.hard { background: #e74c3c; }
+    .play-button {
+      background: linear-gradient(45deg, #ffd700, #ffed4e);
+      color: #333;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 25px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Sarabun', sans-serif;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .play-button:hover {
+      background: linear-gradient(45deg, #ffed4e, #fff);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      color: #e8e8e8;
+      font-size: 1.1em;
+    }
+    .current-game {
+      display: none;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 30px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .back-button {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 1em;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+      font-family: 'Sarabun', sans-serif;
+    }
+    .back-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+    @media (max-width: 768px) {
+      .header h1 { font-size: 2.5em; }
+      .games-grid { grid-template-columns: 1fr; gap: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="main-menu">
+      <div class="header">
+        <h1>🎮 Game Hub</h1>
+        <div class="subtitle">เลือกเกมที่คุณชอบและเริ่มเล่นได้เลย!</div>
+      </div>
+      <div class="games-grid">
+        <div class="game-card" onclick="loadGame('card-guess')">
+          <div class="game-icon">🎴</div>
+          <div class="game-title">เกมเดาไพ่</div>
+          <div class="game-description">ทายสี สูง-ต่ำ ช่วงค่า และดอกไพ่ในรอบสุดท้าย</div>
+          <div class="difficulty easy">ง่าย</div>
+          <button class="play-button">เล่นเลย</button>
+        </div>
+        <div class="game-card" onclick="loadGame('number-guess')">
+          <div class="game-icon">🔢</div>
+          <div class="game-title">เกมทายตัวเลข</div>
+          <div class="game-description">ทายตัวเลข 1-100 ให้ถูกด้วยการลองน้อยที่สุด</div>
+          <div class="difficulty easy">ง่าย</div>
+          <button class="play-button">เล่นเลย</button>
+        </div>
+        <div class="game-card" onclick="loadGame('memory-card')">
+          <div class="game-icon">🧠</div>
+          <div class="game-title">เกมจำไพ่</div>
+          <div class="game-description">เปิดไพ่คู่ให้ครบทุกคู่ในเวลาที่กำหนด</div>
+          <div class="difficulty medium">ปานกลาง</div>
+          <button class="play-button">เล่นเลย</button>
+        </div>
+        <div class="game-card" onclick="loadGame('reaction-time')">
+          <div class="game-icon">⚡</div>
+          <div class="game-title">เกมทดสอบปฏิกิริยา</div>
+          <div class="game-description">กดปุ่มเมื่อเห็นสีเปลี่ยน วัดความเร็วในการตอบสนอง</div>
+          <div class="difficulty medium">ปานกลาง</div>
+          <button class="play-button">เล่นเลย</button>
+        </div>
+        <div class="game-card" onclick="loadGame('math-challenge')">
+          <div class="game-icon">🧮</div>
+          <div class="game-title">เกมคณิตศาสตร์</div>
+          <div class="game-description">แก้โจทย์คณิตให้ถูกต้องและเร็วที่สุด</div>
+          <div class="difficulty hard">ยาก</div>
+          <button class="play-button">เล่นเลย</button>
+        </div>
+      </div>
+      <div class="footer">
+        🎯 เลือกเกมที่ท้าทายความสามารถของคุณ!
+      </div>
+    </div>
+
+    <div id="current-game" class="current-game">
+      <button class="back-button" onclick="backToMenu()">← กลับหน้าหลัก</button>
+      <div id="game-content"></div>
+    </div>
+  </div>
+
+  <script>
+    function loadGame(gameName) {
+      document.getElementById("main-menu").style.display = "none";
+      document.getElementById("current-game").style.display = "block";
+
+      document.getElementById("game-content").innerHTML = `
+      <iframe src="?game=${gameName}" width="100%" height="600px" style="border:none; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.3);"></iframe>`;
+    }
+
+    function backToMenu() {
+      document.getElementById("current-game").style.display = "none";
+      document.getElementById("main-menu").style.display = "block";
+      document.getElementById("game-content").innerHTML = "";
+    }
+  </script>
+</body>
+</html>
